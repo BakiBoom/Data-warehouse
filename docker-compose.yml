@@ -1,0 +1,132 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: dw-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dw
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dw-network
+
+  nifi:
+    image: apache/nifi:latest
+    container_name: dw-nifi
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    environment:
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_WEB_HTTPS_PORT=8443
+      - NIFI_WEB_HTTP_HOST=0.0.0.0
+      - NIFI_WEB_PROXY_HOST=localhost
+    volumes:
+      - ./nifi_data:/opt/nifi/data
+    networks:
+      - dw-network
+
+  redis:
+    image: redis:7
+    container_name: dw-redis
+    expose:
+      - 6379
+    networks:
+      - dw-network
+
+  airflow-webserver:
+    image: apache/airflow:2.9.1
+    container_name: dw-airflow-webserver
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__BROKER_URL=redis://:@redis:6379/0
+      - AIRFLOW__CORE__LOAD_EXAMPLES=True
+    ports:
+      - 8081:8080
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: webserver
+    networks:
+      - dw-network
+
+  airflow-scheduler:
+    image: apache/airflow:2.9.1
+    container_name: dw-airflow-scheduler
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__BROKER_URL=redis://:@redis:6379/0
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: scheduler
+    networks:
+      - dw-network
+
+  airflow-worker:
+    image: apache/airflow:2.9.1
+    container_name: dw-airflow-worker
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://postgres:postgres@postgres/dw
+      - AIRFLOW__CELERY__BROKER_URL=redis://:@redis:6379/0
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    command: celery worker
+    networks:
+      - dw-network
+
+  clickhouse:
+    image: yandex/clickhouse-server:latest
+    container_name: dw-clickhouse
+    ports:
+      - 8123:8123
+      - 9000:9000
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - dw-network
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: dw-metabase
+    ports:
+      - 3000:3000
+    environment:
+      - MB_DB_FILE=/metabase.db
+    volumes:
+      - ./metabase-data:/metabase.db
+    networks:
+      - dw-network
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+
+
+networks:
+  dw-network:
+    external: true
