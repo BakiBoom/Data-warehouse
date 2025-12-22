@@ -22,7 +22,11 @@ create table coffee_sale (
 	id serial primary key,
 	money numeric(30, 18),
 <<<<<<< HEAD
+<<<<<<< HEAD
 	coffee_name_id int,
+=======
+	coffe_name_id int,
+>>>>>>> 730a3c8b3bb29e628ab3e747f6d57de3e0bf5375
 =======
 	coffe_name_id int,
 >>>>>>> 730a3c8b3bb29e628ab3e747f6d57de3e0bf5375
