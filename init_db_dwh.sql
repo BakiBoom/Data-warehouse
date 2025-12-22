@@ -21,7 +21,11 @@ create table month_name (
 create table coffee_sale (
 	id serial primary key,
 	money numeric(30, 18),
+<<<<<<< HEAD
 	coffee_name_id int,
+=======
+	coffe_name_id int,
+>>>>>>> 730a3c8b3bb29e628ab3e747f6d57de3e0bf5375
 	foreign key (coffe_name_id) references coffee_name(id),
 	day_time_id int,
 	foreign key (day_time_id) references day_time(id),
