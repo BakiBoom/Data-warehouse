@@ -38,7 +38,9 @@ order by project_id asc;
 
 create table transaction_facts (
 	id bigserial primary key,
+	transaction_id int,
 	project_id int references projects(id),
+	gate_id int references gates(id),
 	amount varchar(100),
 	fee varchar(100),
 	create_date varchar(100)

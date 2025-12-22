@@ -1,3 +1,80 @@
+create table stg.contracts (
+    id serial primary key,
+    currency varchar(15),
+    address_test varchar(255),
+    address_prod varchar(255),
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+create table stg.transaction_states (
+    id integer primary key,
+    title VARCHAR(255),
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+create table stg.gates (
+    id integer primary key,
+    title VARCHAR(20),
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+create table stg.projects (
+	id serial primary,
+	title text,
+	api_key text,
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+create table stg.transactions (
+	id integer,
+	transaction_hash text,
+    external_wallet_address text,
+    owner_wallet_address text,
+    amount varchar(100),
+    fee varchar(100),
+    contract_id int,
+    transaction_state_id int,
+    gate_id int,
+    project_id int,
+	create_date date
+);
+
+create table dwh.contracts (
+    id serial primary key,
+    bk_contract_id int,
+    currency varchar(15),
+    address_test varchar(255),
+    address_prod varchar(255),
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+create table dwh.projects (
+	id serial primary key,
+    bk_project_id int,
+	title text,
+	api_key text,
+    is_deleted bool default false,
+    update_date date default current_date
+);
+
+
+create table dwh.transactions (
+	id serial primary key,
+	transaction_hash text,
+    external_wallet_address text,
+    owner_wallet_address text,
+    amount varchar(100),
+    fee varchar(100),
+    contract_id int,
+    project_id int,
+    create_date date
+);
+
 CREATE TABLE contracts (
     id SERIAL PRIMARY KEY,
     currency VARCHAR(15),
