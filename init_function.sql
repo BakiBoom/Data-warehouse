@@ -4,7 +4,6 @@ language plpgsql
 as
 $$
 begin
-    -- 1. Обновляем совпадающие строки
     update dwh.contracts c
     set
         currency     = s.currency,
@@ -19,8 +18,6 @@ begin
          or s.address_test is distinct from c.address_test
          or s.address_prod is distinct from c.address_prod
       );
-
-    -- 2. Вставляем новые строки
     insert into dwh.contracts (
         bk_contract_id,
         currency,
@@ -39,8 +36,6 @@ begin
     from stg.contracts s
     left join dwh.contracts c on c.bk_contract_id = s.id
     where c.bk_contract_id is null;
-
-    -- 3. Soft delete для строк, которых нет в source
     update dwh.contracts c
     set
         isdeleted   = true,
@@ -60,7 +55,6 @@ language plpgsql
 as
 $$
 begin
-    -- 1. Обновляем совпадающие строки
     update dwh.projects p
     set
         title     = s.title,
@@ -73,8 +67,6 @@ begin
             s.title     is distinct from p.title
          or s.api_key is distinct from p.api_key
       );
-
-    -- 2. Вставляем новые строки
     insert into dwh.projects (
         bk_project_id,
         title,
@@ -91,8 +83,6 @@ begin
     from stg.projects s
     left join dwh.projects p on p.bk_project_id = s.id
     where p.bk_project_id is null;
-
-    -- 3. Soft delete для строк, которых нет в source
     update dwh.projects p
     set
         is_deleted   = true,
@@ -111,11 +101,8 @@ language plpgsql
 as
 $$
 begin
-    -- 1. Удаляем записи за период
     delete from dwh.transactions
     where create_date::date between p_datefrom::date and p_dateto::date;
-
-    -- 2. Вставляем новые записи
     insert into dwh.transactions (
         transaction_hash,
         external_wallet_address,
